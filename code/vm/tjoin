@@ -1,0 +1,6 @@
+
+
+echo ------------Join Test exhaustif-----------
+
+nachos -x ../tp4test/JoinTest -d l
+

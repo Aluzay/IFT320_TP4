@@ -1,0 +1,5 @@
+
+echo ------------Read-Log Test-----------
+
+nachos -x ../test_tp3/ReadLogTest -d l
+

@@ -1,0 +1,6 @@
+
+
+echo ------------Exit Test-----------
+
+nachos -x ../tp4test/ExitTest
+

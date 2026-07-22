@@ -1,0 +1,5 @@
+
+echo ------------Priority Test-----------
+
+nachos -a 2 -x ../test_tp3/PriorityTest -d l 
+

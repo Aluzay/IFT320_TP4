@@ -1,0 +1,6 @@
+
+
+echo ------------Round Robin Test-----------
+
+nachos -a 1 -x ../tp4test/RobinTest -d l 
+

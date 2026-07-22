@@ -1,0 +1,10 @@
+#!/bin/bash
+
+echo ------------Rebuild tests...-----------
+
+cd ../test_tp3
+make clean
+make
+cd ../userprog
+
+

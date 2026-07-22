@@ -1,0 +1,5 @@
+
+echo ------------Join Test exhaustif-----------
+
+nachos -x ../test_tp3/JoinTest -d l
+

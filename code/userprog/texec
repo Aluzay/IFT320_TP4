@@ -1,0 +1,5 @@
+
+echo ------------Exec Test-----------
+
+nachos -x ../test_tp3/ExecTest -d l 
+

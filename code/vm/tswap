@@ -1,0 +1,6 @@
+
+
+echo ------------Swap Test-----------
+
+nachos -x ../tp4test/SwapTest -d l 
+

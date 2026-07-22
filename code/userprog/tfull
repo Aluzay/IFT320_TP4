@@ -1,0 +1,5 @@
+
+echo ------------Full Test-----------
+
+nachos -x ../test_tp3/FullTest -d l 
+

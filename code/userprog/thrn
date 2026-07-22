@@ -1,0 +1,5 @@
+
+echo ------------HRN Test-----------
+
+nachos -a 3 -x ../test_tp3/HrnTest -d l 
+

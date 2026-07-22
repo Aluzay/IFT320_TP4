@@ -1,0 +1,7 @@
+
+
+echo ------------Log Test-----------
+
+rm -f RESULTAT_CREATE_TEST
+nachos -x ../tp4test/CreateTest 
+

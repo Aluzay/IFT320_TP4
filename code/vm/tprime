@@ -1,0 +1,6 @@
+
+
+echo ------------Prime Test-----------
+
+nachos -x ../tp4test/PrimeTest -d l 
+

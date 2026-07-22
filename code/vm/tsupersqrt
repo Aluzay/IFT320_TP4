@@ -1,0 +1,6 @@
+
+
+echo ------------Test pour le passage de parametres-----------
+
+nachos -x ../tp4test/SuperSqrtTest -d l
+

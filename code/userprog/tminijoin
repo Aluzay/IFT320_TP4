@@ -1,0 +1,5 @@
+
+echo ------------Join Test simple-----------
+
+nachos -x ../test_tp3/MiniJoinTest -d l
+

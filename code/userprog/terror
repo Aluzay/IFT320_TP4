@@ -1,0 +1,18 @@
+
+echo ------------Error Test1-----------
+
+
+nachos -x ../test_tp3/ErrorTest1 
+
+
+echo ------------Error Test2-----------
+
+
+nachos -x ../test_tp3/ErrorTest2 
+
+
+echo ------------Error Test3-----------
+
+
+nachos -x ../test_tp3/ErrorTest3  
+

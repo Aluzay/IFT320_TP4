@@ -1,0 +1,6 @@
+
+
+echo ------------Read-Log Test-----------
+
+nachos -x ../tp4test/ReadLogTest -d l
+

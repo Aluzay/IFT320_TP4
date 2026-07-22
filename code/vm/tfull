@@ -1,0 +1,6 @@
+
+
+echo ------------Full Test-----------
+
+nachos -x ../tp4test/FullTest -d l 
+

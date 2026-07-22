@@ -1,0 +1,6 @@
+
+
+echo ------------Test pour le programme Sqrt-----------
+
+nachos -x ../tp4test/SqrtTest -d l
+

@@ -1,0 +1,14 @@
+# Fichiers objets et exécutables compilés
+*.o
+*.coff
+nachos
+
+# Fichiers résultats générés par les tests
+RESULTAT_*
+*.bak
+
+# Fichiers temporaires
+makedep
+eddep
+core
+*fnmap

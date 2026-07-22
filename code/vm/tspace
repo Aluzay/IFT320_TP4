@@ -1,0 +1,6 @@
+
+
+echo ------------AddrSpace Test-----------
+
+nachos -x ../tp4test/YieldTest -d l
+

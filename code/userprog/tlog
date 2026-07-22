@@ -1,0 +1,5 @@
+
+echo ------------Log Test-----------
+
+nachos -x ../test_tp3/LogTest -d l
+

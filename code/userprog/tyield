@@ -1,0 +1,5 @@
+
+echo ------------Yield Test-----------
+
+nachos -x ../test_tp3/YieldTest2 -d l
+

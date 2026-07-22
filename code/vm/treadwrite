@@ -1,0 +1,8 @@
+
+
+echo ------------Read-Write Test-----------
+
+rm -f RESULTAT_READWRITE_TEST
+nachos -x ../tp4test/ReadWriteTest
+cat RESULTAT_READWRITE_TEST
+

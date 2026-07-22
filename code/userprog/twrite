@@ -1,0 +1,6 @@
+
+echo ------------Open-Write Test-----------
+
+rm -f RESULTAT_OPENWRITE_TEST
+nachos -x ../test_tp3/OpenWriteTest  
+cat RESULTAT_OPENWRITE_TEST
