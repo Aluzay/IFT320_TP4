@@ -68,7 +68,7 @@ AddrSpace::AddrSpace(OpenFile *executable)
 	
 	
 	DEBUG('a', "espace libre =  %d, \n", freeFrame->NumClear());
-	ASSERT(numPages <= freeFrame->NumClear());	
+	// ASSERT(numPages <= freeFrame->NumClear());	
     
 
 
@@ -81,11 +81,11 @@ AddrSpace::AddrSpace(OpenFile *executable)
  
 		//IFT320 trouve un cadre libre, le nettoie et l'assigne.
 		
-		int cadre = freeFrame->Find(); 		
-		bzero(&(machine->mainMemory[cadre*PageSize]), PageSize); 		
-		pageTable[i].physicalPage = cadre;		
+		// int cadre = freeFrame->Find(); 		
+		// bzero(&(machine->mainMemory[cadre*PageSize]), PageSize); 		
+		pageTable[i].physicalPage = -1;		
 		
-		pageTable[i].valid = TRUE;	//Traduction valide ou non
+		pageTable[i].valid = FALSE;	//Traduction valide ou non
 		
 		pageTable[i].use = FALSE;	//Utilisee dernierement (read ou write)
 		pageTable[i].dirty = FALSE;	//Modifiee dernierement (write)
@@ -101,12 +101,11 @@ AddrSpace::AddrSpace(OpenFile *executable)
 	
 	
 	//IFT320: chargement du programme au complet.	
-	SysCallRead(executable,noffH.code.virtualAddr,noffH.code.size,noffH.code.inFileAddr);
+	// SysCallRead(executable,noffH.code.virtualAddr,noffH.code.size,noffH.code.inFileAddr);
 	
-	if(noffH.initData.size>0){
-		SysCallRead(executable,noffH.initData.virtualAddr,noffH.initData.size,noffH.initData.inFileAddr);		
-	}
-	
+	// if(noffH.initData.size>0){
+	// 	SysCallRead(executable,noffH.initData.virtualAddr,noffH.initData.size,noffH.initData.inFileAddr);		
+	// }
 	
 }
 

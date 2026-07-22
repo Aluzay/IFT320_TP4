@@ -203,12 +203,14 @@ void ExceptionHandler(ExceptionType which)
     }	
     
     case PageFaultException:
-	
-			currentThread->stats->incPageFaults();			
-		    printf("Faute de pages : \n");
-		    currentThread->Finish();
-	        ASSERT(FALSE);		
-		    break;
+	{
+    	currentThread->stats->incPageFaults();
+    	int page = machine->ReadRegister(BadVAddrReg) / PageSize;
+    	printf("Faute de pages : %d\n", page);
+    	currentThread->Finish();
+    	ASSERT(FALSE);
+    	break;
+	}
 			
 	    case ReadOnlyException:
 		    printf("Tentative d'ecriture dans une page non modifiable. \n");
