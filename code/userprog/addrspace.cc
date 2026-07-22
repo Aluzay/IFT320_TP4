@@ -45,6 +45,69 @@ extern BitMap* freeFrame;
 //	"executable" is the file containing the object code to load into memory
 //----------------------------------------------------------------------
 
+void AddrSpace::loadFromExecutable(int page){
+  
+  if(page < 0 || page>=numPages){
+    DEBUG('e',"loadFromExecutable: page %d out of range\n",page);
+    return;
+  }
+  
+  if(pageTable[page].valid==TRUE){
+    DEBUG('e',"loadFromExecutable: page %d already in memory\n",page);
+    return;
+  }
+  
+  int cadre = freeFrame->Find();
+  ASSERT(cadre != -1);
+
+  // Calculer l'adresse virtuelle du debut de la page
+  /*
+  exemple: si PageSize = 128, alors
+  Page 0 → pageStart =   0
+  Page 1 → pageStart = 128
+  Page 2 → pageStart = 256
+  Page 9 → pageStart = 1152
+  */
+  int pageStart = page * PageSize;
+
+  // Calculer la taille de la zone code + initData du programme.
+  int initializedSize = executableHeader.code.size
+                      + executableHeader.initData.size;
+
+  char *frame = &(machine->mainMemory[cadre * PageSize]);
+
+  // Les zones uninitialized data et pile commencent remplies de zeros.
+  // garantit que la pile commence a zeros, et que les variables non-initialisees sont initialement a zero.
+  bzero(frame, PageSize);
+
+  // Les executables du TP commencent a l'adresse virtuelle 0 et les
+  // sections code et initData sont contigues.
+  ASSERT(executableHeader.code.virtualAddr == 0);
+  
+  // Si la page demandee est dans la zone code+initData, on la charge depuis le fichier executable.
+  // Exemple avec initializedSize = 256 et PageSize = 128 :
+  // pages 0 et 1 -> lecture du fichier; page 9 (pile) -> reste a zero.
+  if(pageStart < initializedSize) {
+    // quantite totale - quantite situee avant cette page = quantite restante a lire
+    int bytesToRead = initializedSize - pageStart;
+    if(bytesToRead > PageSize)
+      bytesToRead = PageSize;
+
+    int fileOffset = executableHeader.code.inFileAddr + pageStart;
+    int bytesRead = executableFile->ReadAt(frame,
+                                           bytesToRead,
+                                           fileOffset);
+    ASSERT(bytesRead == bytesToRead);
+  }
+
+  // La traduction devient valide seulement lorsque le contenu est pret.
+  pageTable[page].physicalPage = cadre;
+  pageTable[page].valid = TRUE;
+  pageTable[page].use = FALSE;
+  pageTable[page].dirty = FALSE;
+  
+}
+
 AddrSpace::AddrSpace(OpenFile *executable)
 {
     
@@ -57,6 +120,9 @@ AddrSpace::AddrSpace(OpenFile *executable)
     if ((noffH.noffMagic != NOFFMAGIC) && (WordToHost(noffH.noffMagic) == NOFFMAGIC))
     	SwapHeader(&noffH);
     ASSERT(noffH.noffMagic == NOFFMAGIC);
+
+    executableHeader = noffH;
+    executableFile = executable;
 
 	// how big is address space?
     size = noffH.code.size + noffH.initData.size + noffH.uninitData.size + UserStackSize;		
@@ -124,9 +190,10 @@ AddrSpace::~AddrSpace()
 	//IFT320: liberation des cadres
 	int i;
 	DEBUG('e',"Liberation des cadres...\n");
-	for (i = 0; i < numPages; i++)
-		
-		freeFrame->Clear(pageTable[i].physicalPage); //libere cadre 
+	for (i = 0; i < numPages; i++){
+		if(pageTable[i].valid && pageTable[i].physicalPage >= 0)
+			freeFrame->Clear(pageTable[i].physicalPage); //libere cadre
+	}
 
 	delete pageTable;
 }

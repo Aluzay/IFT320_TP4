@@ -207,8 +207,7 @@ void ExceptionHandler(ExceptionType which)
     	currentThread->stats->incPageFaults();
     	int page = machine->ReadRegister(BadVAddrReg) / PageSize;
     	printf("Faute de pages : %d\n", page);
-    	currentThread->Finish();
-    	ASSERT(FALSE);
+	    	currentThread->space->loadFromExecutable(page);
     	break;
 	}
 			
@@ -305,14 +304,18 @@ void CopyFromUser(char * dest, char * source, int longueur)
 	
 	if (longueur >= 0)
 		for (i=0 ; i < longueur ; i++) {		
-				code = machine->ReadMem((int)source+i, 1, &tmp);
+				do {
+					code = machine->ReadMem((int)source+i, 1, &tmp);
+				} while (code == 0);
 				
 				dest[i] = (char)tmp;				
 		}
 	else
 	{	
 		do {
-			code = machine->ReadMem((int) source+i, 1, &tmp);
+			do {
+				code = machine->ReadMem((int)source+i, 1, &tmp);
+			} while (code == 0);
 			
 			dest[i] = (char)tmp;			
 			i++;
@@ -324,10 +327,11 @@ void CopyToUser(char * dest, char * source, int longueur)
 {
 	int code;
 	for (int i=0; i < longueur; i++){
-			code = machine->WriteMem((int)dest+i, 1, (int)source[i]);
+			do {
+				code = machine->WriteMem((int)dest+i, 1, (int)source[i]);
+			} while (code == 0);
 			
 		}
 	
 }
-
 

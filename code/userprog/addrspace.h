@@ -36,13 +36,15 @@ class AddrSpace {
     void RestoreState();		// info on a context switch 
 	void PrintPageTable();
 	void PrintPage(int,int);
-	
+	void loadFromExecutable(int page);
 	
   private:
     TranslationEntry *pageTable;	// Assume linear page table translation
 					// for now!
     int numPages;		// Number of pages in the virtual 
 					// address space
+    OpenFile *executableFile;	// Fichier executable pour le programme
+    NoffHeader executableHeader;	// Entete du fichier executable pour le programme
 	
 };
 
