@@ -125,9 +125,26 @@ AddrSpace::AddrSpace(OpenFile *executable)
     executableFile = executable;
 
 	// how big is address space?
-    size = noffH.code.size + noffH.initData.size + noffH.uninitData.size + UserStackSize;		
-    numPages = divRoundUp(size, PageSize);
-    size = numPages * PageSize;
+	    // Taille exacte de l'espace virtuel : code, donnees initialisees,
+	    // donnees non initialisees et pile du processus.
+	    size = noffH.code.size + noffH.initData.size + noffH.uninitData.size + UserStackSize;
+
+	    // Nombre de pages necessaires, arrondi vers le haut lorsqu'une
+	    // derniere page n'est que partiellement utilisee.
+	    numPages = divRoundUp(size, PageSize);
+
+	    // Taille reelle alignee sur des pages completes.
+	    // Exemple : 1474 octets avec PageSize=128 -> 12 pages -> 1536 octets.
+	    size = numPages * PageSize;
+
+	// Chaque processus possede son propre fichier d'echange. La page n
+	// occupera le bloc commencant a la position n * PageSize.
+	sprintf(swapFileName, "swap_%d.swp", currentThread->pid);
+	bool swapCreated = fileSystem->Create(swapFileName, size);
+	ASSERT(swapCreated);
+
+	swapFile = fileSystem->Open(swapFileName);
+	ASSERT(swapFile != NULL);
 
 	
 	//IFT320: verifie si espace suffisant pour charger le programme.	
@@ -196,6 +213,11 @@ AddrSpace::~AddrSpace()
 	}
 
 	delete pageTable;
+
+	// Fermer puis supprimer le fichier d'echange propre a ce processus.
+	delete swapFile;
+	bool swapRemoved = fileSystem->Remove(swapFileName);
+	ASSERT(swapRemoved);
 }
 
 void AddrSpace::PrintPageTable(){

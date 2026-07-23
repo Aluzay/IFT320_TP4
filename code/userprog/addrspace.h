@@ -45,6 +45,8 @@ class AddrSpace {
 					// address space
     OpenFile *executableFile;	// Fichier executable pour le programme
     NoffHeader executableHeader;	// Entete du fichier executable pour le programme
+	    char swapFileName[32];	// Nom unique du fichier d'echange du processus
+	    OpenFile *swapFile;		// Fichier d'echange pour le programme
 	
 };
 
