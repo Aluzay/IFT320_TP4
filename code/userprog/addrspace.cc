@@ -45,20 +45,10 @@ extern BitMap* freeFrame;
 //	"executable" is the file containing the object code to load into memory
 //----------------------------------------------------------------------
 
-void AddrSpace::loadFromExecutable(int page){
-  
-  if(page < 0 || page>=numPages){
-    DEBUG('e',"loadFromExecutable: page %d out of range\n",page);
-    return;
-  }
-  
-  if(pageTable[page].valid==TRUE){
-    DEBUG('e',"loadFromExecutable: page %d already in memory\n",page);
-    return;
-  }
-  
-  int cadre = freeFrame->Find();
-  ASSERT(cadre != -1);
+void AddrSpace::loadFromExecutable(int page, int frameNumber){
+  ASSERT(page >= 0 && page < numPages);
+  ASSERT(frameNumber >= 0);
+  ASSERT(pageTable[page].valid == FALSE);
 
   // Calculer l'adresse virtuelle du debut de la page
   /*
@@ -74,7 +64,7 @@ void AddrSpace::loadFromExecutable(int page){
   int initializedSize = executableHeader.code.size
                       + executableHeader.initData.size;
 
-  char *frame = &(machine->mainMemory[cadre * PageSize]);
+  char *frame = &(machine->mainMemory[frameNumber * PageSize]);
 
   // Les zones uninitialized data et pile commencent remplies de zeros.
   // garantit que la pile commence a zeros, et que les variables non-initialisees sont initialement a zero.
@@ -101,11 +91,86 @@ void AddrSpace::loadFromExecutable(int page){
   }
 
   // La traduction devient valide seulement lorsque le contenu est pret.
-  pageTable[page].physicalPage = cadre;
+  pageTable[page].physicalPage = frameNumber;
   pageTable[page].valid = TRUE;
   pageTable[page].use = FALSE;
   pageTable[page].dirty = FALSE;
-  
+}
+
+// Choisit circulairement la prochaine page valide du processus courant.
+int AddrSpace::selectVictim(){
+  for(int checked = 0; checked < numPages; checked++){
+    int candidate = (nextVictim + checked) % numPages;
+    if(pageTable[candidate].valid){
+      nextVictim = (candidate + 1) % numPages;
+      return candidate;
+    }
+  }
+
+  // Le remplacement local exige que le processus possede deja un cadre.
+  return -1;
+}
+
+// Sauvegarde une page presente en memoire dans le fichier d'echange.
+void AddrSpace::swapOut(int page){
+  ASSERT(page >= 0 && page < numPages);
+  ASSERT(pageTable[page].valid == TRUE);
+
+  int frameNumber = pageTable[page].physicalPage;
+  char *frame = &(machine->mainMemory[frameNumber * PageSize]);
+  int bytesWritten = swapFile->WriteAt(frame,
+                                       PageSize,
+                                       page * PageSize);
+  ASSERT(bytesWritten == PageSize);
+
+  pageTable[page].physicalPage = PAGE_IN_SWAP;
+  pageTable[page].valid = FALSE;
+  pageTable[page].use = FALSE;
+  pageTable[page].dirty = FALSE;
+  currentThread->stats->incSwapOuts();
+}
+
+// Recharge dans un cadre une page dont la copie recente est dans le swap.
+void AddrSpace::swapIn(int page, int frameNumber){
+  ASSERT(page >= 0 && page < numPages);
+  ASSERT(frameNumber >= 0);
+  ASSERT(pageTable[page].valid == FALSE);
+  ASSERT(pageTable[page].physicalPage == PAGE_IN_SWAP);
+
+  char *frame = &(machine->mainMemory[frameNumber * PageSize]);
+  int bytesRead = swapFile->ReadAt(frame,
+                                   PageSize,
+                                   page * PageSize);
+  ASSERT(bytesRead == PageSize);
+
+  pageTable[page].physicalPage = frameNumber;
+  pageTable[page].valid = TRUE;
+  pageTable[page].use = FALSE;
+  pageTable[page].dirty = FALSE;
+  currentThread->stats->incSwapIns();
+}
+
+// Resout une faute en utilisant un cadre libre ou une victime locale.
+void AddrSpace::handlePageFault(int page){
+  ASSERT(page >= 0 && page < numPages);
+  ASSERT(pageTable[page].valid == FALSE);
+
+  int pageLocation = pageTable[page].physicalPage;
+  int frameNumber = freeFrame->Find();
+
+  if(frameNumber == -1){
+    int victim = selectVictim();
+    ASSERT(victim != -1);
+    frameNumber = pageTable[victim].physicalPage;
+    swapOut(victim);
+  }
+
+  if(pageLocation == PAGE_IN_SWAP)
+    swapIn(page, frameNumber);
+  else{
+    ASSERT(pageLocation == PAGE_IN_EXECUTABLE);
+    loadFromExecutable(page, frameNumber);
+  }
 }
 
 AddrSpace::AddrSpace(OpenFile *executable)
@@ -136,6 +201,7 @@ AddrSpace::AddrSpace(OpenFile *executable)
 	    // Taille reelle alignee sur des pages completes.
 	    // Exemple : 1474 octets avec PageSize=128 -> 12 pages -> 1536 octets.
 	    size = numPages * PageSize;
+	    nextVictim = 0;
 
 	// Chaque processus possede son propre fichier d'echange. La page n
 	// occupera le bloc commencant a la position n * PageSize.
@@ -166,7 +232,7 @@ AddrSpace::AddrSpace(OpenFile *executable)
 		
 		// int cadre = freeFrame->Find(); 		
 		// bzero(&(machine->mainMemory[cadre*PageSize]), PageSize); 		
-		pageTable[i].physicalPage = -1;		
+			pageTable[i].physicalPage = PAGE_IN_EXECUTABLE;		
 		
 		pageTable[i].valid = FALSE;	//Traduction valide ou non
 		

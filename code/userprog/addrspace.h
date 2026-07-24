@@ -20,6 +20,10 @@
 
 #define UserStackSize		1024 	// increase this as necessary!
 
+// Valeurs speciales utilisees lorsqu'une page n'est pas en memoire.
+#define PAGE_IN_EXECUTABLE	-1
+#define PAGE_IN_SWAP		-2
+
 
 
 class AddrSpace {
@@ -36,9 +40,14 @@ class AddrSpace {
     void RestoreState();		// info on a context switch 
 	void PrintPageTable();
 	void PrintPage(int,int);
-	void loadFromExecutable(int page);
+	void handlePageFault(int page);
 	
   private:
+	void loadFromExecutable(int page, int frame);
+	void swapIn(int page, int frame);
+	void swapOut(int page);
+	int selectVictim();
+
     TranslationEntry *pageTable;	// Assume linear page table translation
 					// for now!
     int numPages;		// Number of pages in the virtual 
@@ -47,6 +56,7 @@ class AddrSpace {
     NoffHeader executableHeader;	// Entete du fichier executable pour le programme
 	    char swapFileName[32];	// Nom unique du fichier d'echange du processus
 	    OpenFile *swapFile;		// Fichier d'echange pour le programme
+	    int nextVictim;		// Prochaine position de recherche d'une victime
 	
 };
 

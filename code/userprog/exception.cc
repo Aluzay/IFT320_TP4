@@ -207,7 +207,7 @@ void ExceptionHandler(ExceptionType which)
     	currentThread->stats->incPageFaults();
     	int page = machine->ReadRegister(BadVAddrReg) / PageSize;
     	printf("Faute de pages : %d\n", page);
-	    	currentThread->space->loadFromExecutable(page);
+	    	currentThread->space->handlePageFault(page);
     	break;
 	}
 			
@@ -334,4 +334,3 @@ void CopyToUser(char * dest, char * source, int longueur)
 		}
 	
 }
-
